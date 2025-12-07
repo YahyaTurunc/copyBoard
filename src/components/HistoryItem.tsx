@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { ClipboardItem } from '../utils/types';
-import { Trash2 } from 'lucide-react-native';
+import { Trash2, Copy, FileText } from 'lucide-react-native';
 
 interface HistoryItemProps {
     item: ClipboardItem;
@@ -12,6 +12,8 @@ interface HistoryItemProps {
 }
 
 export const HistoryItem: React.FC<HistoryItemProps> = ({ item, onPress, onDelete, onLongPress }) => {
+
+    // Silme butonu animasyonu
     const renderRightActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
         const trans = dragX.interpolate({
             inputRange: [-100, 0],
@@ -20,7 +22,7 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({ item, onPress, onDelet
         });
 
         return (
-            <TouchableOpacity onPress={() => onDelete(item.id)} className="bg-red-500 justify-center items-center w-20 h-full rounded-r-xl">
+            <TouchableOpacity onPress={() => onDelete(item.id)} className="bg-red-500 justify-center items-center w-20 h-[90%] my-auto rounded-r-2xl ml-[-10px]">
                 <Animated.View style={{ transform: [{ translateX: trans }] }}>
                     <Trash2 color="white" size={24} />
                 </Animated.View>
@@ -28,30 +30,55 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({ item, onPress, onDelet
         );
     };
 
-    const date = new Date(item.timestamp);
-    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    // Basit tarih formatlayıcı (Örn: 14:30)
+    const formatTime = (timestamp: number) => {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
 
     return (
-        <Swipeable renderRightActions={renderRightActions}>
-            <TouchableOpacity
-                onPress={() => onPress(item)}
-                onLongPress={() => onLongPress(item)}
-                className="bg-white dark:bg-slate-800 p-4 border-b border-gray-100 dark:border-slate-700 active:bg-gray-50 dark:active:bg-slate-700"
-            >
-                <View className="flex-row justify-between items-start">
-                    <Text className="text-gray-800 dark:text-gray-100 text-base font-medium flex-1 mr-2" numberOfLines={1}>
-                        {item.text}
-                    </Text>
-                    <Text className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        {formattedDate}
-                    </Text>
-                </View>
-                {item.source && (
-                    <Text className="text-xs text-blue-500 mt-1">
-                        {item.source}
-                    </Text>
-                )}
-            </TouchableOpacity>
-        </Swipeable>
+        <View className="px-4 py-2">
+            <Swipeable renderRightActions={renderRightActions} containerStyle={{ overflow: 'visible' }}>
+                <TouchableOpacity
+                    onPress={() => onPress(item)}
+                    onLongPress={() => onLongPress(item)}
+                    activeOpacity={0.7}
+                    className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-700 flex-row items-center"
+                >
+                    {/* Sol İkon Alanı */}
+                    <View className="bg-blue-50 dark:bg-blue-900/30 w-10 h-10 rounded-full items-center justify-center mr-3">
+                        <FileText size={20} className="text-blue-500 dark:text-blue-400" />
+                    </View>
+
+                    {/* Orta Metin Alanı */}
+                    <View className="flex-1 space-y-1">
+                        <Text
+                            className="text-gray-800 dark:text-gray-100 text-base font-semibold"
+                            numberOfLines={1}
+                        >
+                            {item.text.replace(/\n/g, ' ')}
+                        </Text>
+                        <View className="flex-row items-center">
+                            <Text className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+                                {formatTime(item.timestamp)}
+                            </Text>
+                            {item.source && (
+                                <>
+                                    <View className="w-1 h-1 rounded-full bg-gray-300 mx-2" />
+                                    <Text className="text-xs text-blue-500 font-medium bg-blue-50 px-2 py-0.5 rounded-md overflow-hidden">
+                                        {item.source}
+                                    </Text>
+                                </>
+                            )}
+                        </View>
+                    </View>
+
+                    {/* Sağ Aksiyon İkonu */}
+                    <View className="pl-2">
+                        <Copy size={16} className="text-gray-300" />
+                    </View>
+                </TouchableOpacity>
+            </Swipeable>
+        </View>
     );
 };
