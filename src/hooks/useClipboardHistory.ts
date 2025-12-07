@@ -10,6 +10,7 @@ export const useClipboardHistory = () => {
     const [isAutoCaptureEnabled, setIsAutoCaptureEnabled] = useState(false);
     const appState = useRef(AppState.currentState);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const isInternalCopy = useRef(false);
 
     // Load history on mount
     useEffect(() => {
@@ -54,6 +55,17 @@ export const useClipboardHistory = () => {
         return false;
     }, [addEntry]);
 
+    const copyToClipboard = useCallback(async (text: string) => {
+        isInternalCopy.current = true;
+        await Clipboard.setStringAsync(text);
+        // Reset flag after a short delay to be safe, though usually the next app state change handles it
+        // But here we are just setting string, so the loop happens when we return to app or if we are already in app.
+        // If we are in app, the interval might pick it up.
+        setTimeout(() => {
+            isInternalCopy.current = false;
+        }, 1000);
+    }, []);
+
     // Auto-capture logic
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -74,6 +86,10 @@ export const useClipboardHistory = () => {
                     if (hasString) {
                         const text = await Clipboard.getStringAsync();
                         if (text) {
+                            if (isInternalCopy.current) {
+                                isInternalCopy.current = false;
+                                return;
+                            }
                             // We don't know the source app easily in Expo without native modules, 
                             // so we leave it undefined or mark as 'Auto'
                             // Check dedupe inside addEntry
@@ -104,5 +120,6 @@ export const useClipboardHistory = () => {
         deleteEntry,
         clearAll,
         refreshHistory: loadHistory,
+        copyToClipboard,
     };
 };

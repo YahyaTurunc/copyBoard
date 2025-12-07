@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, Switch, TouchableOpacity, Alert, StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context'; // Expo'nun safe-area'sı daha iyidir
+import { View, Text, FlatList, Switch, TouchableOpacity, Alert, StatusBar, SafeAreaView } from 'react-native';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Expo'nun safe-area'sı daha iyidir
 import { useClipboardHistory } from '../hooks/useClipboardHistory';
 import { HistoryItem } from '../components/HistoryItem';
 import { FAB } from '../components/FAB';
 import { DetailModal } from './DetailModal';
 import { ClipboardItem } from '../utils/types';
-import { Settings, ClipboardList } from 'lucide-react-native';
+import { Settings, ClipboardList, Trash2 } from 'lucide-react-native';
 import { exportData, importData } from '../utils/storage';
 import * as Clipboard from 'expo-clipboard';
 
@@ -17,7 +17,9 @@ export const HomeScreen = () => {
         setIsAutoCaptureEnabled,
         manualCapture,
         deleteEntry,
-        refreshHistory
+        refreshHistory,
+        clearAll,
+        copyToClipboard
     } = useClipboardHistory();
 
     const [selectedItem, setSelectedItem] = useState<ClipboardItem | null>(null);
@@ -39,7 +41,7 @@ export const HomeScreen = () => {
     };
 
     const handleItemPress = async (item: ClipboardItem) => {
-        await Clipboard.setStringAsync(item.text);
+        await copyToClipboard(item.text);
         // Haptic feedback eklenebilir buraya
     };
 
@@ -53,7 +55,7 @@ export const HomeScreen = () => {
             {
                 text: "Dışa Aktar (Kopyala)", onPress: async () => {
                     const data = await exportData();
-                    await Clipboard.setStringAsync(data);
+                    await copyToClipboard(data);
                     Alert.alert("Başarılı", "Yedek panoya kopyalandı.");
                 }
             },
@@ -73,10 +75,27 @@ export const HomeScreen = () => {
         ]);
     };
 
+    const handleClearAll = () => {
+        Alert.alert(
+            "Tümünü Temizle",
+            "Tüm geçmiş silinecek. Bu işlem geri alınamaz. Emin misiniz?",
+            [
+                { text: "Vazgeç", style: "cancel" },
+                {
+                    text: "Sil",
+                    style: "destructive",
+                    onPress: async () => {
+                        await clearAll();
+                    }
+                }
+            ]
+        );
+    };
+
     return (
         <View className="flex-1 bg-gray-50 dark:bg-slate-950">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
+            <SafeAreaView className="flex-1" >
 
                 {/* Header Alanı */}
                 <View className="px-6 pt-2 pb-4 bg-gray-50 dark:bg-slate-950 z-10">
@@ -89,12 +108,20 @@ export const HomeScreen = () => {
                                 {history.length} kayıt saklanıyor
                             </Text>
                         </View>
-                        <TouchableOpacity
-                            onPress={handleExportImport}
-                            className="bg-white dark:bg-slate-800 p-2.5 rounded-full shadow-sm border border-gray-100 dark:border-slate-700"
-                        >
-                            <Settings size={22} className="text-gray-600 dark:text-gray-300" />
-                        </TouchableOpacity>
+                        <View className="flex-row gap-2">
+                            <TouchableOpacity
+                                onPress={handleClearAll}
+                                className="bg-white dark:bg-slate-800 p-2.5 rounded-full shadow-sm border border-gray-100 dark:border-slate-700"
+                            >
+                                <Trash2 size={22} className="text-red-500" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={handleExportImport}
+                                className="bg-white dark:bg-slate-800 p-2.5 rounded-full shadow-sm border border-gray-100 dark:border-slate-700"
+                            >
+                                <Settings size={22} className="text-gray-600 dark:text-gray-300" />
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     {/* Auto Capture Switch Kartı */}

@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { ClipboardItem } from '../utils/types';
-import { Trash2, Copy, FileText } from 'lucide-react-native';
+import { Trash2, Copy, FileText, Check } from 'lucide-react-native';
 
 interface HistoryItemProps {
     item: ClipboardItem;
@@ -12,12 +12,52 @@ interface HistoryItemProps {
 }
 
 export const HistoryItem: React.FC<HistoryItemProps> = ({ item, onPress, onDelete, onLongPress }) => {
+    const [isCopied, setIsCopied] = useState(false);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePress = async () => {
+        await onPress(item);
+
+        // Shrink Copy icon
+        Animated.timing(scaleAnim, {
+            toValue: 0,
+            duration: 150,
+            useNativeDriver: true,
+        }).start(() => {
+            setIsCopied(true);
+            // Grow Check icon
+            Animated.spring(scaleAnim, {
+                toValue: 1,
+                useNativeDriver: true,
+                damping: 15,
+                stiffness: 150,
+            }).start();
+        });
+
+        setTimeout(() => {
+            // Shrink Check icon
+            Animated.timing(scaleAnim, {
+                toValue: 0,
+                duration: 150,
+                useNativeDriver: true,
+            }).start(() => {
+                setIsCopied(false);
+                // Grow Copy icon
+                Animated.spring(scaleAnim, {
+                    toValue: 1,
+                    useNativeDriver: true,
+                    damping: 15,
+                    stiffness: 150,
+                }).start();
+            });
+        }, 2000);
+    };
 
     // Silme butonu animasyonu
     const renderRightActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
         const trans = dragX.interpolate({
             inputRange: [-100, 0],
-            outputRange: [0, 100],
+            outputRange: [0, 10],
             extrapolate: 'clamp',
         });
 
@@ -40,7 +80,7 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({ item, onPress, onDelet
         <View className="px-4 py-2">
             <Swipeable renderRightActions={renderRightActions} containerStyle={{ overflow: 'visible' }}>
                 <TouchableOpacity
-                    onPress={() => onPress(item)}
+                    onPress={handlePress}
                     onLongPress={() => onLongPress(item)}
                     activeOpacity={0.7}
                     className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-700 flex-row items-center"
@@ -75,7 +115,13 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({ item, onPress, onDelet
 
                     {/* Sağ Aksiyon İkonu */}
                     <View className="pl-2">
-                        <Copy size={16} className="text-gray-300" />
+                        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                            {isCopied ? (
+                                <Check size={20} color={"green"} className="text-green-500" />
+                            ) : (
+                                <Copy size={20} className="text-gray-300" />
+                            )}
+                        </Animated.View>
                     </View>
                 </TouchableOpacity>
             </Swipeable>
