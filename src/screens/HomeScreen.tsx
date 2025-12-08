@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, Switch, TouchableOpacity, Alert, StatusBar, SafeAreaView } from 'react-native';
+import { View, Text, FlatList, Switch, TouchableOpacity, Alert, StatusBar, SafeAreaView, TextInput } from 'react-native';
 // import { SafeAreaView } from 'react-native-safe-area-context'; // Expo'nun safe-area'sı daha iyidir
 import { useClipboardHistory } from '../hooks/useClipboardHistory';
 import { HistoryItem } from '../components/HistoryItem';
 import { FAB } from '../components/FAB';
 import { DetailModal } from './DetailModal';
 import { ClipboardItem } from '../utils/types';
-import { Settings, ClipboardList, Trash2 } from 'lucide-react-native';
+import { Settings, ClipboardList, Trash2, Search, X } from 'lucide-react-native';
 import { exportData, importData } from '../utils/storage';
 import * as Clipboard from 'expo-clipboard';
 
@@ -24,6 +24,11 @@ export const HomeScreen = () => {
 
     const [selectedItem, setSelectedItem] = useState<ClipboardItem | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredHistory = history.filter(item =>
+        item.text.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const handleToggleAutoCapture = (value: boolean) => {
         if (value) {
@@ -145,9 +150,31 @@ export const HomeScreen = () => {
                     </View>
                 </View>
 
+                {/* Arama Çubuğu */}
+                <View className="px-6 py-2 bg-gray-50 dark:bg-slate-950 z-10">
+                    <View className="flex-row gap-2 items-center  bg-white dark:bg-slate-800 rounded-xl px-3 h-12 border border-gray-200 dark:border-slate-700">
+                        <Search size={20} className="text-gray-400 mr-2 " />
+                        <TextInput
+                            className="flex-1 text-base text-gray-900 dark:text-white h-full mb-2"
+                            placeholder=" Kaydedilenlerde ara..."
+                            placeholderTextColor="#9ca3af"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            autoCapitalize="none"
+                            textAlignVertical="center" // Android'de metni dikey ortalar
+                            style={{ includeFontPadding: false }} // Android'de gereksiz boşlukları silerƒ
+                        />
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                <X size={20} className="text-gray-400" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+
                 {/* Liste */}
                 <FlatList
-                    data={history}
+                    data={filteredHistory}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
                         <HistoryItem
