@@ -130,7 +130,7 @@ export const HomeScreen = () => {
                     </View>
 
                     {/* Auto Capture Switch Kartı */}
-                    <View className="bg-blue-600 rounded-2xl p-4 flex-row items-center justify-between shadow-lg shadow-blue-200">
+                    {/* <View className="bg-blue-600 rounded-2xl p-4 flex-row items-center justify-between shadow-lg shadow-blue-200">
                         <View className="flex-row items-center flex-1 mr-4">
                             <View className="bg-white/20 p-2 rounded-xl mr-3">
                                 <ClipboardList size={20} color="white" />
@@ -147,7 +147,7 @@ export const HomeScreen = () => {
                             thumbColor={isAutoCaptureEnabled ? "#ffffff" : "#f4f3f4"}
                             ios_backgroundColor="#3e3e3e"
                         />
-                    </View>
+                    </View> */}
                 </View>
 
                 {/* Arama Çubuğu */}
