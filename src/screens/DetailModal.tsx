@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, Share } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, ScrollView, Share, TextInput } from 'react-native';
 import { ClipboardItem } from '../utils/types';
 import * as Clipboard from 'expo-clipboard';
 import { Copy, Share2, Trash2, X } from 'lucide-react-native';
@@ -51,7 +51,14 @@ export const DetailModal: React.FC<DetailModalProps> = ({ visible, item, onClose
                     </View>
 
                     <ScrollView className="flex-1 bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-6">
-                        <Text className="text-base text-gray-800 dark:text-gray-200">{item.text}</Text>
+                        <TextInput
+                            multiline
+                            scrollEnabled={false}
+                            editable={false}
+                            value={item.text}
+                            className="text-base text-gray-800 dark:text-gray-200"
+                            textAlignVertical="top"
+                        />
                     </ScrollView>
 
                     <View className="flex-row justify-around pb-6">
